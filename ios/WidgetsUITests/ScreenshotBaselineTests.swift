@@ -4,6 +4,7 @@ import XCTest
 /// Screenshots are saved as XCTAttachment with .keepAlways lifetime, then a small
 /// post-test script in scripts/ extracts them from the .xcresult bundle into
 /// .context/orchestrator/screens/baseline/.
+@MainActor
 final class ScreenshotBaselineTests: XCTestCase {
     override func setUp() {
         super.setUp()

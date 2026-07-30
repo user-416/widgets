@@ -18,6 +18,7 @@ import XCTest
 ///   5. Sheet dismisses, callback URL fires, app exchanges via worker, lands
 ///      on the "name + color + Add metric" view
 ///   6. Test captures screenshot, taps "Add metric", returns to Home
+@MainActor
 final class Phase3RealStravaE2ETest: XCTestCase {
     override func setUp() {
         super.setUp()
