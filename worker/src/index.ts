@@ -1,35 +1,42 @@
 import { Hono } from "hono";
 import type { Context, MiddlewareHandler } from "hono";
 
+// Rate limiter binding (configured in wrangler.toml). Optional at runtime so
+// `wrangler dev` and older deployments without the binding still work.
+type RateLimiter = { limit(opts: { key: string }): Promise<{ success: boolean }> };
+
 type Env = {
   STRAVA_CLIENT_ID: string;
   STRAVA_CLIENT_SECRET: string;
+  TOKEN_RATE_LIMITER?: RateLimiter;
 };
 
 type StravaForm = Record<string, string>;
 
 const STRAVA_TOKEN_URL = "https://www.strava.com/oauth/token";
 
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
-const cors: MiddlewareHandler = async (c, next) => {
-  await next();
-  for (const [k, v] of Object.entries(corsHeaders)) {
-    c.res.headers.set(k, v);
-  }
-};
-
 const app = new Hono<{ Bindings: Env }>();
 
-app.use("*", cors);
+// No CORS headers: this worker is called by a native iOS app, never a browser.
+// Omitting them keeps a malicious page from relaying through it from a
+// victim's browser.
 
-app.options("*", (c) => {
-  return new Response(null, { status: 204, headers: corsHeaders });
-});
+// Throttle the token endpoints per client IP. These endpoints spend our Strava
+// client credentials and count against our API quota, so an open relay is a
+// quota-burn risk now that the worker URL is public.
+const rateLimit: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
+  const limiter = c.env.TOKEN_RATE_LIMITER;
+  if (limiter) {
+    const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+    const { success } = await limiter.limit({ key: ip });
+    if (!success) {
+      return c.json({ error: "rate_limited" }, 429);
+    }
+  }
+  await next();
+};
+
+app.use("/strava/*", rateLimit);
 
 app.get("/healthz", (c) => c.json({ ok: true }));
 

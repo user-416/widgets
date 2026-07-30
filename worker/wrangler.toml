@@ -13,3 +13,11 @@ compatibility_date = "2026-04-01"
 #   # then edit .dev.vars with real values
 #
 # Strava values come from your Strava app at https://www.strava.com/settings/api.
+
+# Per-IP throttle on /strava/* so the token endpoints can't be used to burn our
+# Strava API quota. namespace_id is any number unique within this worker.
+[[unsafe.bindings]]
+name = "TOKEN_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }
