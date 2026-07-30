@@ -37,8 +37,10 @@ final class SyncCoordinatorIntegrationTests: XCTestCase {
     /// the parts that don't need it.
     private var keychainAvailable = false
 
+    // No `super.setUp()` call: this class is @MainActor and XCTestCase's async
+    // setUp is nonisolated, so calling it would send non-Sendable self across
+    // isolation domains. The base implementation is documented as a no-op.
     override func setUp() async throws {
-        try await super.setUp()
         let schema = Schema([PersistedMetric.self, PersistedManualEntry.self])
         modelContainer = try ModelContainer(
             for: schema,
@@ -78,7 +80,6 @@ final class SyncCoordinatorIntegrationTests: XCTestCase {
         FakeStravaClient.resetPersistentAthlete()
         modelContainer = nil
         context = nil
-        try await super.tearDown()
     }
 
     // MARK: - Helpers
