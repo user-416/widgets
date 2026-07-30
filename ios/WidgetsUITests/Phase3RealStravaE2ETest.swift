@@ -106,6 +106,7 @@ final class Phase3RealStravaE2ETest: XCTestCase {
 }
 
 private extension XCTestCase {
+    @MainActor
     func attach(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name
