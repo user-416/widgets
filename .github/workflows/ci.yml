@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS build and tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen generate
+
+      - name: Pick an available simulator
+        id: sim
+        run: |
+          set -euo pipefail
+          name=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)["devices"]
+          best = None
+          for runtime, devices in data.items():
+              if "iOS" not in runtime:
+                  continue
+              for d in devices:
+                  if d.get("isAvailable") and d["name"].startswith("iPhone"):
+                      if best is None or d["name"] > best:
+                          best = d["name"]
+          print(best or "")
+          ')
+          if [ -z "$name" ]; then
+            echo "No iPhone simulator available on this runner" >&2
+            xcrun simctl list devices available >&2
+            exit 1
+          fi
+          echo "Using simulator: $name"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Build and run unit tests
+        working-directory: ios
+        run: |
+          xcodebuild test \
+            -project Widgets.xcodeproj \
+            -scheme Widgets \
+            -destination "platform=iOS Simulator,name=${{ steps.sim.outputs.name }}" \
+            -only-testing:WidgetsSharedTests \
+            -only-testing:WidgetsAppTests \
+            CODE_SIGNING_ALLOWED=NO
+
+  shared-package:
+    name: Shared package tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift test
+        working-directory: ios/Shared
+        run: swift test
+
+  worker:
+    name: Worker typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - name: Install
+        working-directory: worker
+        run: npm ci
+      - name: Typecheck
+        working-directory: worker
+        run: npx tsc --noEmit
