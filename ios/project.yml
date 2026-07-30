@@ -1,0 +1,183 @@
+name: Widgets
+options:
+  bundleIdPrefix: io.github.user-416
+  deploymentTarget:
+    iOS: '17.0'
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    SWIFT_STRICT_CONCURRENCY: minimal
+    MARKETING_VERSION: '0.1.0'
+    CURRENT_PROJECT_VERSION: '1'
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ''
+    GENERATE_INFOPLIST_FILE: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+packages:
+  WidgetsShared:
+    path: Shared
+
+targets:
+  Widgets:
+    type: application
+    platform: iOS
+    sources:
+      - path: Widgets
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/Widgets.entitlements"
+    resources:
+      - Widgets/Resources/Assets.xcassets
+    info:
+      path: Widgets/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Widgets
+        LSRequiresIPhoneOS: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UILaunchScreen: {}
+        UIRequiredDeviceCapabilities:
+          - arm64
+        UISupportedInterfaceOrientations~iphone:
+          - UIInterfaceOrientationPortrait
+        NSHealthShareUsageDescription: Widgets reads your steps, workouts, sleep, heart rate, HRV, active energy, mindful minutes, and body weight from the Health app to render your daily progress as a contribution graph.
+        NSHealthUpdateUsageDescription: Widgets writes test step samples in development builds for QA.
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: io.github.user-416.widgets.strava
+            CFBundleURLSchemes:
+              - widgets
+        UIBackgroundModes:
+          - fetch
+          - processing
+        # Integration config (read by `Configuration.swift` and the OAuth clients):
+        #   WORKER_BASE_URL — your deployed Cloudflare Worker, e.g.
+        #     https://widgets-worker.<account>.workers.dev. Used by the
+        #     Strava OAuth flow. Leave blank until you've deployed; the
+        #     Add flows show an inline "isn't configured for this build"
+        #     message instead of crashing.
+        #   STRAVA_CLIENT_ID — Strava app Client ID from
+        #     https://www.strava.com/settings/api. In DEBUG builds an empty
+        #     value falls back to the placeholder "123456" with a one-shot
+        #     warning log; in Release the OAuth flow refuses to start.
+        # After editing any value, regenerate the Xcode project:
+        #   cd ios && xcodegen generate
+        WORKER_BASE_URL: 'https://widgets-worker.tony-1ee.workers.dev'
+        STRAVA_CLIENT_ID: '236439'
+    entitlements:
+      path: Widgets/Resources/Widgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.io.github.user-416.widgets
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.background-delivery: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.user-416.widgets
+        PRODUCT_NAME: Widgets
+        TARGETED_DEVICE_FAMILY: '1'
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    dependencies:
+      - package: WidgetsShared
+        product: WidgetsShared
+      - target: WidgetsWidget
+
+  WidgetsWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: WidgetsWidget
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/WidgetsWidget.entitlements"
+    resources:
+      - WidgetsWidget/Resources/Assets.xcassets
+    info:
+      path: WidgetsWidget/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Widgets
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: WidgetsWidget/Resources/WidgetsWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.io.github.user-416.widgets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.user-416.widgets.widget
+        PRODUCT_NAME: WidgetsWidget
+        TARGETED_DEVICE_FAMILY: '1'
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SKIP_INSTALL: YES
+    dependencies:
+      - package: WidgetsShared
+        product: WidgetsShared
+
+  WidgetsSharedTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Shared/Tests/WidgetsSharedTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.user-416.widgets.SharedTests
+        TARGETED_DEVICE_FAMILY: '1'
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - package: WidgetsShared
+        product: WidgetsShared
+
+  WidgetsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - WidgetsUITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.user-416.widgets.UITests
+        TARGETED_DEVICE_FAMILY: '1'
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Widgets
+    dependencies:
+      - target: Widgets
+
+  WidgetsAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - WidgetsAppTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.user-416.widgets.AppTests
+        TARGETED_DEVICE_FAMILY: '1'
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Widgets.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Widgets
+        BUNDLE_LOADER: $(TEST_HOST)
+    dependencies:
+      - target: Widgets
+
+schemes:
+  Widgets:
+    build:
+      targets:
+        Widgets: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - WidgetsSharedTests
+        - WidgetsAppTests
+        - WidgetsUITests
+    archive:
+      config: Release

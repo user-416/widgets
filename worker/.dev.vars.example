@@ -1,0 +1,10 @@
+# Local-development secrets for `wrangler dev`. Copy to `.dev.vars` (which is
+# gitignored) and paste real values. For production deploys, use
+#   wrangler secret put STRAVA_CLIENT_ID
+#   wrangler secret put STRAVA_CLIENT_SECRET
+# instead — the deployed Worker reads from Cloudflare's secret store, not this
+# file.
+
+# Strava OAuth (https://www.strava.com/settings/api).
+STRAVA_CLIENT_ID="123456"
+STRAVA_CLIENT_SECRET="your-strava-client-secret"

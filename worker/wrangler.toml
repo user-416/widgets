@@ -1,0 +1,15 @@
+name = "widgets-worker"
+main = "src/index.ts"
+compatibility_date = "2026-04-01"
+
+# Required env vars — all read in src/index.ts as `c.env.<NAME>`.
+#
+# Production (after `wrangler deploy`):
+#   wrangler secret put STRAVA_CLIENT_ID
+#   wrangler secret put STRAVA_CLIENT_SECRET
+#
+# Local dev (`wrangler dev`):
+#   cp .dev.vars.example .dev.vars   # gitignored
+#   # then edit .dev.vars with real values
+#
+# Strava values come from your Strava app at https://www.strava.com/settings/api.
