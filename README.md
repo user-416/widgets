@@ -6,6 +6,20 @@ hours, or anything you count yourself.
 
 Site: https://user-416.github.io/widgets-site/
 
+## Before you build
+
+The project was renamed from GridKit to Widgets. Two consequences:
+
+- **The Strava worker isn't deployed yet.** The URL in `ios/project.yml`
+  (`widgets-worker...`) 404s, because renaming the worker makes it a new one
+  as far as Cloudflare is concerned. Run `npx wrangler deploy` in `worker/`,
+  then `wrangler secret put STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET`
+  (secrets don't carry over). Health, Toggl, and manual metrics work without
+  this; only Strava connect fails.
+- **It installs as a new app.** The bundle ID, app group, and Keychain service
+  all changed, so iOS treats it as unrelated to any previously installed
+  build. Old tokens and cached data won't carry over. Delete the old app.
+
 ## Build
 
 ```sh
@@ -38,13 +52,24 @@ taken, change `bundleIdPrefix` in `ios/project.yml` and regenerate.
 - `ios/` app, widget extension, and shared Swift package (xcodegen project)
 - `worker/` Cloudflare Worker for the Strava token exchange
 
+## Scripts
+
+- `./scripts/sim-prep-for-widget.sh` builds, re-signs with the App Group
+  entitlement (xcodebuild strips it for the simulator), seeds sample data, and
+  opens the simulator so you can add the widget to the home screen. Search the
+  widget gallery for "KPI Grid".
+- `./scripts/install-on-iphone.sh` builds and installs on a connected iPhone.
+- `./scripts/run-ui-tests.sh` runs the UI tests with the same re-signing fix.
+
 ## Tests
 
 ```sh
 cd ios/Shared && swift test
 ```
 
-App tests run from Xcode with the `Widgets` scheme.
+App tests run from Xcode with the `Widgets` scheme. CI runs the unit tests and
+the shared package on every push; the UI tests are not run in CI (they need a
+booted simulator and are slow), so run them locally with the script above.
 
 ## License
 

@@ -70,6 +70,12 @@ targets:
         #     warning log; in Release the OAuth flow refuses to start.
         # After editing any value, regenerate the Xcode project:
         #   cd ios && xcodegen generate
+        #
+        # NOTE: the URL below is not deployed yet. The worker was renamed
+        # gridkit-worker -> widgets-worker, and Cloudflare treats that as a new
+        # worker, so it needs `npx wrangler deploy` plus a fresh
+        # `wrangler secret put` for both Strava values (secrets are per-name).
+        # Until then, Strava connect fails; Health, Toggl, and manual work.
         WORKER_BASE_URL: 'https://widgets-worker.tony-1ee.workers.dev'
         STRAVA_CLIENT_ID: '236439'
     entitlements:
