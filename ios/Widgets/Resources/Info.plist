@@ -62,6 +62,6 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>WORKER_BASE_URL</key>
-	<string>https://widgets-worker.tony-1ee.workers.dev</string>
+	<string>https://gridkit-worker.tony-1ee.workers.dev</string>
 </dict>
 </plist>

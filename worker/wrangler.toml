@@ -1,4 +1,9 @@
-name = "widgets-worker"
+# Kept as "gridkit-worker" (the pre-rename name) on purpose: Cloudflare scopes
+# secrets per worker name, so renaming would orphan STRAVA_CLIENT_ID and
+# STRAVA_CLIENT_SECRET and require re-entering both from the Strava dashboard.
+# This name is internal — it never appears in the UI. Deploying under this name
+# keeps the existing secrets and just updates the code.
+name = "gridkit-worker"
 main = "src/index.ts"
 compatibility_date = "2026-04-01"
 

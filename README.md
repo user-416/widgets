@@ -8,17 +8,15 @@ Site: https://user-416.github.io/widgets-site/
 
 ## Before you build
 
-The project was renamed from GridKit to Widgets. Two consequences:
+The project was renamed from GridKit to Widgets, which has one consequence:
+**it installs as a new app.** The bundle ID, app group, and Keychain service
+all changed, so iOS treats it as unrelated to any previously installed build.
+Old tokens and cached data won't carry over — delete the old app first.
 
-- **The Strava worker isn't deployed yet.** The URL in `ios/project.yml`
-  (`widgets-worker...`) 404s, because renaming the worker makes it a new one
-  as far as Cloudflare is concerned. Run `npx wrangler deploy` in `worker/`,
-  then `wrangler secret put STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET`
-  (secrets don't carry over). Health, Toggl, and manual metrics work without
-  this; only Strava connect fails.
-- **It installs as a new app.** The bundle ID, app group, and Keychain service
-  all changed, so iOS treats it as unrelated to any previously installed
-  build. Old tokens and cached data won't carry over. Delete the old app.
+The Cloudflare Worker deliberately keeps its old name (`gridkit-worker`), since
+Cloudflare scopes secrets per worker name and renaming it would mean
+re-entering the Strava credentials. It's already deployed and working; nothing
+is required to build and run.
 
 ## Build
 

@@ -60,7 +60,7 @@ targets:
           - processing
         # Integration config (read by `Configuration.swift` and the OAuth clients):
         #   WORKER_BASE_URL — your deployed Cloudflare Worker, e.g.
-        #     https://widgets-worker.<account>.workers.dev. Used by the
+        #     https://<your-worker>.<account>.workers.dev. Used by the
         #     Strava OAuth flow. Leave blank until you've deployed; the
         #     Add flows show an inline "isn't configured for this build"
         #     message instead of crashing.
@@ -71,12 +71,9 @@ targets:
         # After editing any value, regenerate the Xcode project:
         #   cd ios && xcodegen generate
         #
-        # NOTE: the URL below is not deployed yet. The worker was renamed
-        # gridkit-worker -> widgets-worker, and Cloudflare treats that as a new
-        # worker, so it needs `npx wrangler deploy` plus a fresh
-        # `wrangler secret put` for both Strava values (secrets are per-name).
-        # Until then, Strava connect fails; Health, Toggl, and manual work.
-        WORKER_BASE_URL: 'https://widgets-worker.tony-1ee.workers.dev'
+        # The worker keeps its pre-rename name (see worker/wrangler.toml for
+        # why) so this URL is live and holds the Strava secrets already.
+        WORKER_BASE_URL: 'https://gridkit-worker.tony-1ee.workers.dev'
         STRAVA_CLIENT_ID: '236439'
     entitlements:
       path: Widgets/Resources/Widgets.entitlements
